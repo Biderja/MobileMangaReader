@@ -1,0 +1,585 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>الإعدادات - Settings</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/animejs/3.2.1/anime.min.js"></script>
+    <script src="supabase-integration.js"></script>
+    
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700&family=Inter:wght@300;400;500;600&family=Amiri:wght@400;700&display=swap');
+        
+        :root {
+            --primary-dark: #1a1a1a;
+            --secondary-cream: #f7f3e9;
+            --accent-coral: #e85a4f;
+            --text-dark: #2d2d2d;
+        }
+        
+        body {
+            font-family: 'Inter', sans-serif;
+            background: linear-gradient(135deg, #1a1a1a 0%, #2d2d2d 100%);
+            color: white;
+            margin: 0;
+            padding: 0;
+        }
+        
+        .font-arabic {
+            font-family: 'Amiri', serif;
+        }
+        
+        .font-display {
+            font-family: 'Playfair Display', serif;
+        }
+        
+        .settings-card {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 16px;
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+        
+        .settings-title {
+            font-size: 18px;
+            font-weight: 600;
+            margin-bottom: 16px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .setting-item {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 12px 0;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        
+        .setting-item:last-child {
+            border-bottom: none;
+        }
+        
+        .setting-label {
+            font-size: 14px;
+            color: rgba(255, 255, 255, 0.9);
+        }
+        
+        .setting-description {
+            font-size: 12px;
+            color: rgba(255, 255, 255, 0.6);
+            margin-top: 2px;
+        }
+        
+        .toggle-switch {
+            position: relative;
+            width: 50px;
+            height: 24px;
+            background: rgba(255, 255, 255, 0.3);
+            border-radius: 12px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        
+        .toggle-switch.active {
+            background: var(--accent-coral);
+        }
+        
+        .toggle-slider {
+            position: absolute;
+            top: 2px;
+            right: 2px;
+            width: 20px;
+            height: 20px;
+            background: white;
+            border-radius: 50%;
+            transition: all 0.3s ease;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+        }
+        
+        .toggle-switch.active .toggle-slider {
+            transform: translateX(-26px);
+        }
+        
+        .slider-control {
+            width: 100%;
+            height: 6px;
+            background: rgba(255, 255, 255, 0.3);
+            border-radius: 3px;
+            outline: none;
+            -webkit-appearance: none;
+            appearance: none;
+        }
+        
+        .slider-control::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 20px;
+            height: 20px;
+            background: var(--accent-coral);
+            border-radius: 50%;
+            cursor: pointer;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+        }
+        
+        .slider-control::-moz-range-thumb {
+            width: 20px;
+            height: 20px;
+            background: var(--accent-coral);
+            border-radius: 50%;
+            cursor: pointer;
+            border: none;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+        }
+        
+        .dropdown-select {
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 8px;
+            padding: 8px 12px;
+            color: white;
+            font-size: 14px;
+            min-width: 120px;
+        }
+        
+        .dropdown-select:focus {
+            outline: none;
+            border-color: var(--accent-coral);
+        }
+        
+        .color-picker {
+            width: 40px;
+            height: 40px;
+            border-radius: 8px;
+            border: 2px solid rgba(255, 255, 255, 0.3);
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        
+        .color-picker:hover {
+            transform: scale(1.1);
+            border-color: var(--accent-coral);
+        }
+        
+        .bottom-nav {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: rgba(26, 26, 26, 0.95);
+            backdrop-filter: blur(20px);
+            padding: 12px 0;
+            z-index: 100;
+        }
+        
+        .nav-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 8px;
+            max-width: 400px;
+            margin: 0 auto;
+            padding: 0 20px;
+        }
+        
+        .nav-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 8px 4px;
+            color: #ccc;
+            text-decoration: none;
+            font-size: 12px;
+            transition: all 0.3s ease;
+            border-radius: 8px;
+        }
+        
+        .nav-item.active,
+        .nav-item:hover {
+            color: var(--accent-coral);
+            background: rgba(232, 90, 79, 0.1);
+        }
+        
+        .nav-icon {
+            width: 24px;
+            height: 24px;
+            margin-bottom: 4px;
+            fill: currentColor;
+        }
+        
+        .reset-btn {
+            background: var(--accent-coral);
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 8px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            width: 100%;
+        }
+        
+        .reset-btn:hover {
+            background: #d63031;
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(232, 90, 79, 0.3);
+        }
+        
+        .version-info {
+            text-align: center;
+            font-size: 12px;
+            color: rgba(255, 255, 255, 0.5);
+            margin-top: 20px;
+        }
+        
+        @media (max-width: 768px) {
+            .settings-card {
+                padding: 16px;
+            }
+            
+            .setting-item {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 8px;
+            }
+            
+            .setting-item > div:last-child {
+                align-self: flex-end;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Header -->
+    <header class="px-4 py-6">
+        <div class="max-w-md mx-auto">
+            <h1 class="font-display text-3xl font-bold text-center mb-2">الإعدادات</h1>
+            <p class="text-gray-300 text-center text-sm">خصص تجربة القراءة حسب تفضيلاتك</p>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="px-4 pb-20">
+        <div class="max-w-md mx-auto">
+            <!-- Reading Preferences -->
+            <div class="settings-card">
+                <h2 class="settings-title">
+                    <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+                        <path d="M9 4.804A7.968 7.968 0 005.5 4c-1.255 0-2.443.29-3.5.804v10A7.969 7.969 0 015.5 14c1.669 0 3.218.51 4.5 1.385A7.962 7.962 0 0114.5 14c1.255 0 2.443.29 3.5.804v-10A7.968 7.968 0 0014.5 4c-1.255 0-2.443.29-3.5.804V12a1 1 0 11-2 0V4.804z"/>
+                    </svg>
+                    تفضيلات القراءة
+                </h2>
+                
+                <div class="setting-item">
+                    <div>
+                        <div class="setting-label">اتجاه القراءة</div>
+                        <div class="setting-description">اختر بين اليمين لليسار أو اليسار لليمين</div>
+                    </div>
+                    <select class="dropdown-select" id="readingDirection">
+                        <option value="rtl">من اليمين لليسار (RTL)</option>
+                        <option value="ltr">من اليسار لليمين (LTR)</option>
+                    </select>
+                </div>
+                
+                <div class="setting-item">
+                    <div>
+                        <div class="setting-label">وضع القراءة المزدوج</div>
+                        <div class="setting-description">عرض صفحتين جنباً إلى جنب</div>
+                    </div>
+                    <div class="toggle-switch" id="doublePageToggle">
+                        <div class="toggle-slider"></div>
+                    </div>
+                </div>
+                
+                <div class="setting-item">
+                    <div>
+                        <div class="setting-label">الانتقال التلقائي</div>
+                        <div class="setting-description">الانتقال للصفحة التالية تلقائياً</div>
+                    </div>
+                    <div class="toggle-switch" id="autoScrollToggle">
+                        <div class="toggle-slider"></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Display Settings -->
+            <div class="settings-card">
+                <h2 class="settings-title">
+                    <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+                        <path fill-rule="evenodd" d="M3 4a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm0 4a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm0 4a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm0 4a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1z"/>
+                    </svg>
+                    إعدادات العرض
+                </h2>
+                
+                <div class="setting-item">
+                    <div>
+                        <div class="setting-label">حجم الخط</div>
+                        <div class="setting-description">حجم نص الترجمة</div>
+                    </div>
+                    <div class="flex items-center gap-3" style="min-width: 150px;">
+                        <span class="text-sm">صغير</span>
+                        <input type="range" class="slider-control flex-1" id="fontSize" min="12" max="24" value="16">
+                        <span class="text-sm">كبير</span>
+                    </div>
+                </div>
+                
+                <div class="setting-item">
+                    <div>
+                        <div class="setting-label">السطوع</div>
+                        <div class="setting-description">سطوع الصور والصفحات</div>
+                    </div>
+                    <div class="flex items-center gap-3" style="min-width: 150px;">
+                        <span class="text-sm">مظلم</span>
+                        <input type="range" class="slider-control flex-1" id="brightness" min="50" max="150" value="100">
+                        <span class="text-sm">ساطع</span>
+                    </div>
+                </div>
+                
+                <div class="setting-item">
+                    <div>
+                        <div class="setting-label">الوضع الليلي</div>
+                        <div class="setting-description">تبديل بين الوضع النهاري والليلي</div>
+                    </div>
+                    <div class="toggle-switch active" id="darkModeToggle">
+                        <div class="toggle-slider"></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Language Settings -->
+            <div class="settings-card">
+                <h2 class="settings-title">
+                    <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+                        <path fill-rule="evenodd" d="M7 2a1 1 0 011 1v1h3a1 1 0 110 2H9.578a18.87 18.87 0 01-1.724 4.78c.29.354.596.696.914 1.026a1 1 0 11-1.44 1.389c-.188-.196-.373-.396-.554-.6a19.098 19.098 0 01-3.107 3.567 1 1 0 01-1.334-1.49 17.087 17.087 0 003.13-3.733 18.992 18.992 0 01-1.487-2.494 1 1 0 111.79-.89c.234.47.489.928.764 1.372.417-.934.752-1.913.997-2.927H3a1 1 0 110-2h3V3a1 1 0 011-1zm6.143 9.29a1 1 0 010-1.415l3-3a1 1 0 011.414 0l3 3a1 1 0 01-1.414 1.414L13 8.414V15a1 1 0 11-2 0V8.414l-1.146 1.147a1 1 0 01-1.414-1.414z"/>
+                    </svg>
+                    إعدادات اللغة
+                </h2>                           
+                            
+                
+                
+            </div>
+
+            <!-- Performance Settings -->
+            <div class="settings-card">
+                <h2 class="settings-title">
+                    <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+                        <path fill-rule="evenodd" d="M11.3 1.046A1 1 0 0112 2v5h4a1 1 0 01.82 1.573l-7 10A1 1 0 018 18v-5H4a1 1 0 01-.82-1.573l7-10a1 1 0 011.12-.38z"/>
+                    </svg>
+                    الأداء
+                </h2>
+                
+                <div class="setting-item">
+                    <div>
+                        <div class="setting-label">تحميل سريع</div>
+                        <div class="setting-description">تحميل الصفحات مسبقاً للقراءة السريعة</div>
+                    </div>
+                    <div class="toggle-switch active" id="preloadToggle">
+                        <div class="toggle-slider"></div>
+                    </div>
+                </div>
+                
+                <div class="setting-item">
+                    <div>
+                        <div class="setting-label">تقليل البيانات</div>
+                        <div class="setting-description">ضغط الصور لتقليل استهلاك البيانات</div>
+                    </div>
+                    <div class="toggle-switch" id="dataSaverToggle">
+                        <div class="toggle-slider"></div>
+                    </div>
+                </div>
+                
+                <div class="setting-item">
+                    <div>
+                        <div class="setting-label">الرسوم المتحركة</div>
+                        <div class="setting-description">تفعيل تأثيرات الصفحات المتحركة</div>
+                    </div>
+                    <div class="toggle-switch active" id="animationsToggle">
+                        <div class="toggle-slider"></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Account Settings -->
+            <div class="settings-card">
+                <h2 class="settings-title">
+                    <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+                        <path fill-rule="evenodd" d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z"/>
+                    </svg>
+                    الحساب
+                </h2>
+                
+                <div class="setting-item">
+                    <div>
+                        <div class="setting-label">مزامنة التقدم</div>
+                        <div class="setting-description">حفظ تقدم القراءة على السحابة</div>
+                    </div>
+                    <div class="toggle-switch active" id="syncToggle">
+                        <div class="toggle-slider"></div>
+                    </div>
+                </div>
+                
+                <div class="setting-item">
+                    <div>
+                        <div class="setting-label">الإشعارات</div>
+                        <div class="setting-description">إشعاص إصدارات الفصول الجديدة</div>
+                    </div>
+                    <div class="toggle-switch" id="notificationsToggle">
+                        <div class="toggle-slider"></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Reset Settings -->
+            <div class="settings-card">
+                <h2 class="settings-title">
+                    <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+                        <path fill-rule="evenodd" d="M4 2a1 1 0 011 1v2.101a7.002 7.002 0 0111.601 2.566 1 1 0 11-1.885.666A5.002 5.002 0 005.999 7H9a1 1 0 010 2H4a1 1 0 01-1-1V3a1 1 0 011-1zm.008 9.057a1 1 0 011.276.61A5.002 5.002 0 0014.001 13H11a1 1 0 110-2h5a1 1 0 011 1v5a1 1 0 11-2 0v-2.101a7.002 7.002 0 01-11.601-2.566 1 1 0 01.61-1.276z"/>
+                    </svg>
+                    إعادة الضبط
+                </h2>
+                <p class="text-gray-300 text-sm mb-4">إعادة جميع الإعدادات إلى الوضع الافتراضي</p>
+                <button class="reset-btn" onclick="resetSettings()">إعادة الضبط</button>
+            </div>
+
+            <!-- Version Info -->
+            <div class="version-info">
+                <p>قارئ المانغا المتقدم v1.0.0</p>
+                <p>آخر تحديث: أكتوبر 2024</p>
+            </div>
+        </div>
+    </main>
+
+    <!-- Bottom Navigation -->
+    <nav class="bottom-nav">
+        <div class="nav-grid">
+            <a href="index.html" class="nav-item">
+                <svg class="nav-icon" viewBox="0 0 20 20" fill="currentColor">
+                    <path d="M10.707 2.293a1 1 0 00-1.414 0l-7 7a1 1 0 001.414 1.414L4 10.414V17a1 1 0 001 1h2a1 1 0 001-1v-2a1 1 0 011-1h2a1 1 0 011 1v2a1 1 0 001 1h2a1 1 0 001-1v-6.586l.293.293a1 1 0 001.414-1.414l-7-7z"/>
+                </svg>
+                <span>القارئ</span>
+            </a>
+            <a href="library.html" class="nav-item">
+                <svg class="nav-icon" viewBox="0 0 20 20" fill="currentColor">
+                    <path d="M7 3a1 1 0 000 2h6a1 1 0 100-2H7zM4 7a1 1 0 011-1h10a1 1 0 110 2H5a1 1 0 01-1-1zM2 11a2 2 0 012-2h12a2 2 0 012 2v4a2 2 0 01-2 2H4a2 2 0 01-2-2v-4z"/>
+                </svg>
+                <span>المكتبة</span>
+            </a>
+            <a href="#" class="nav-item" onclick="showComingSoon()">
+                <svg class="nav-icon" viewBox="0 0 20 20" fill="currentColor">
+                    <path fill-rule="evenodd" d="M3.172 5.172a4 4 0 015.656 0L10 6.343l1.172-1.171a4 4 0 115.656 5.656L10 17.657l-6.828-6.829a4 4 0 010-5.656z"/>
+                </svg>
+                <span>المفضلة</span>
+            </a>
+            <a href="settings.html" class="nav-item active">
+                <svg class="nav-icon" viewBox="0 0 20 20" fill="currentColor">
+                    <path fill-rule="evenodd" d="M11.49 3.17c-.38-1.56-2.6-1.56-2.98 0a1.532 1.532 0 01-2.286.948c-1.372-.836-2.942.734-2.106 2.106.54.886.061 2.042-.947 2.287-1.561.379-1.561 2.6 0 2.978a1.532 1.532 0 01.947 2.287c-.836 1.372.734 2.942 2.106 2.106a1.532 1.532 0 012.287.947c.379 1.561 2.6 1.561 2.978 0a1.533 1.533 0 012.287-.947c1.372.836 2.942-.734 2.106-2.106a1.533 1.533 0 01.947-2.287c1.561-.379 1.561-2.6 0-2.978a1.532 1.532 0 01-.947-2.287c.836-1.372-.734-2.942-2.106-2.106a1.532 1.532 0 01-2.287-.947zM10 13a3 3 0 100-6 3 3 0 000 6z"/>
+                </svg>
+                <span>الإعدادات</span>
+            </a>
+        </div>
+    </nav>
+
+    <script>
+        // Toggle switch functionality
+        document.addEventListener('DOMContentLoaded', function() {
+            const toggles = document.querySelectorAll('.toggle-switch');
+            
+            toggles.forEach(toggle => {
+                toggle.addEventListener('click', function() {
+                    this.classList.toggle('active');
+                    
+                    // Add animation
+                    anime({
+                        targets: this.querySelector('.toggle-slider'),
+                        scale: [1, 1.2, 1],
+                        duration: 200,
+                        easing: 'easeOutQuad'
+                    });
+                    
+                    // Save setting to localStorage
+                    const settingId = this.id;
+                    const isActive = this.classList.contains('active');
+                    localStorage.setItem(settingId, isActive);
+                });
+            });
+            
+            // Load saved settings
+            toggles.forEach(toggle => {
+                const settingId = toggle.id;
+                const savedValue = localStorage.getItem(settingId);
+                
+                if (savedValue !== null) {
+                    const isActive = savedValue === 'true';
+                    toggle.classList.toggle('active', isActive);
+                }
+            });
+            
+            // Slider functionality
+            const sliders = document.querySelectorAll('.slider-control');
+            sliders.forEach(slider => {
+                slider.addEventListener('input', function() {
+                    const settingId = this.id;
+                    const value = this.value;
+                    localStorage.setItem(settingId, value);
+                    
+                    // Apply changes immediately
+                    if (settingId === 'fontSize') {
+                        document.documentElement.style.setProperty('--font-size', value + 'px');
+                    } else if (settingId === 'brightness') {
+                        document.body.style.filter = `brightness(${value}%)`;
+                    }
+                });
+                
+                // Load saved slider values
+                const settingId = slider.id;
+                const savedValue = localStorage.getItem(settingId);
+                if (savedValue !== null) {
+                    slider.value = savedValue;
+                    slider.dispatchEvent(new Event('input'));
+                }
+            });
+            
+            // Dropdown functionality
+            const dropdowns = document.querySelectorAll('.dropdown-select');
+            dropdowns.forEach(dropdown => {
+                dropdown.addEventListener('change', function() {
+                    const settingId = this.id;
+                    const value = this.value;
+                    localStorage.setItem(settingId, value);
+                });
+                
+                // Load saved dropdown values
+                const settingId = dropdown.id;
+                const savedValue = localStorage.getItem(settingId);
+                if (savedValue !== null) {
+                    dropdown.value = savedValue;
+                }
+            });
+        });
+        
+        function resetSettings() {
+            if (confirm('هل أنت متأكد من إعادة جميع الإعدادات إلى الوضع الافتراضي؟')) {
+                // Clear all settings from localStorage
+                const settings = [
+                    'readingDirection', 'doublePageToggle', 'autoScrollToggle',
+                    'fontSize', 'brightness', 'darkModeToggle',
+                    'translationLanguage', 'showTranslationToggle', 'translationPosition',
+                    'preloadToggle', 'dataSaverToggle', 'animationsToggle',
+                    'syncToggle', 'notificationsToggle'
+                ];
+                
+                settings.forEach(setting => {
+                    localStorage.removeItem(setting);
+                });
+                
+                // Reset UI to defaults
+                location.reload();
+            }
+        }
+    </script>
+    <script src="main.js"></script>
+</body>
+</html>
